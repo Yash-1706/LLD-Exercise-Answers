@@ -1,0 +1,44 @@
+import java.util.*;
+
+// Uses a list of rule objects instead of an if-else chain. Add new rules by creating classes; the engine remains unchanged.
+public class EligibilityEngine {
+    private final FakeEligibilityStore store;
+    private final List<EligibilityRule> rules;
+
+    public EligibilityEngine(FakeEligibilityStore store, List<EligibilityRule> rules) {
+        this.store = store;
+        this.rules = rules;
+    }
+
+    public void runAndPrint(StudentProfile s) {
+        ReportPrinter p = new ReportPrinter();
+        EligibilityEngineResult r = evaluate(s);
+        p.print(s, r);
+        store.save(s.rollNo, r.status);
+    }
+
+    public EligibilityEngineResult evaluate(StudentProfile s) {
+        List<String> reasons = new ArrayList<>();
+        String status = "ELIGIBLE";
+
+        for (EligibilityRule rule : rules) {
+            String reason = rule.check(s);
+            if (reason != null) {
+                status = "NOT_ELIGIBLE";
+                reasons.add(reason);
+                break;  // stop at first failure (preserves previous behavior)
+            }
+        }
+
+        return new EligibilityEngineResult(status, reasons);
+    }
+}
+
+class EligibilityEngineResult {
+    public final String status;
+    public final List<String> reasons;
+    public EligibilityEngineResult(String status, List<String> reasons) {
+        this.status = status;
+        this.reasons = reasons;
+    }
+}
